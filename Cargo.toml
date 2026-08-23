@@ -8,3 +8,4 @@ serenity = "0.12"
 tokio = { version = "1", features = ["full"] }
 shuttle-runtime = "0.57"
 shuttle-serenity = "0.57"
+phf = { version = "0.14", features = ["macros"] }
