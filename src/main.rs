@@ -13,14 +13,13 @@ impl EventHandler for Handler {
             return;
         }
 
-        let prefix = self.prefix.lock().unwrap();
+        let prefix = *self.prefix.lock().unwrap();
 
-        if msg.content.starts_with(*prefix) {
-            let _ = msg.channel_id.say(&ctx.http, "No commands yet!");
+        if msg.content.starts_with(prefix) {
+            let _ = msg.channel_id.say(&ctx.http, "No commands yet!").await;
         }
     }
 }
-
 #[tokio::main]
 async fn main() {
     let token = env::var("DISCORD_TOKEN").expect("DISCORD_TOKEN environment variable is missing");
