@@ -16,3 +16,11 @@ jobs:
         run: |
           source "$HOME/.cargo/env"
           cargo build --release
+
+      - name: Copy bot executable
+        run: |
+          cp target/release/discord_bot /home/github-runner/discord_bot/discord_bot
+          chmod +x /home/github-runner/discord_bot/discord_bot
+
+      - name: Restart bot
+        run: sudo systemctl restart discord-bot
