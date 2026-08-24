@@ -12,27 +12,30 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Build bot
-        run: |
-          source "$HOME/.cargo/env"
-          cargo build --release
+        run: cargo build --release
 
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          cat << 'EOF' > ~/.ssh/deploy_key
+          ${{ secrets.DEPLOY_SSH_KEY }}
+          EOF
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -p ${{ secrets.DEPLOY_PORT }} -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
 
       - name: Transfer executable to VM
         run: |
-          scp -i ~/.ssh/deploy_key \
+          scp -P ${{ secrets.DEPLOY_PORT }} -i ~/.ssh/deploy_key \
             target/release/discord_bot \
             ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/tmp/discord_bot_new
 
       - name: Deploy and restart bot
         run: |
-          ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
+          ssh -p ${{ secrets.DEPLOY_PORT }} -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
           sudo mv /tmp/discord_bot_new /home/github-runner/discord_bot/discord_bot
           sudo chmod +x /home/github-runner/discord_bot/discord_bot
           sudo systemctl restart discord-bot
