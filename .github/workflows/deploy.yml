@@ -1,4 +1,4 @@
-``name: Deploy bot
+name: Deploy bot
 
 on:
   push:
@@ -36,4 +36,4 @@ jobs:
           sudo mv /tmp/discord_bot_new /home/github-runner/discord_bot/discord_bot
           sudo chmod +x /home/github-runner/discord_bot/discord_bot
           sudo systemctl restart discord-bot
-          EOF``
+          EOF
