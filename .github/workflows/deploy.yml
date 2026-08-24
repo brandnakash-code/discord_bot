@@ -12,15 +12,20 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Build bot
-        run: |
-          source "$HOME/.cargo/env"
-          cargo build --release
+      # FIX 1: Install Rust on the temporary GitHub runner machine
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
 
+      - name: Build bot
+        run: cargo build --release
+
+      # FIX 2: Safely write the multi-line SSH key using a heredoc
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          cat << 'EOF' > ~/.ssh/deploy_key
+          ${{ secrets.DEPLOY_SSH_KEY }}
+          EOF
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
 
