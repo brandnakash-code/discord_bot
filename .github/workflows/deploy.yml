@@ -1,4 +1,4 @@
-name: Deploy bot
+``name: Deploy bot
 
 on:
   push:
@@ -12,20 +12,15 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      # FIX 1: Install Rust on the temporary GitHub runner machine
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
       - name: Build bot
-        run: cargo build --release
+        run: |
+          source "$HOME/.cargo/env"
+          cargo build --release
 
-      # FIX 2: Safely write the multi-line SSH key using a heredoc
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
-          cat << 'EOF' > ~/.ssh/deploy_key
-          ${{ secrets.DEPLOY_SSH_KEY }}
-          EOF
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
 
@@ -41,4 +36,4 @@ jobs:
           sudo mv /tmp/discord_bot_new /home/github-runner/discord_bot/discord_bot
           sudo chmod +x /home/github-runner/discord_bot/discord_bot
           sudo systemctl restart discord-bot
-          EOF
+          EOF``
