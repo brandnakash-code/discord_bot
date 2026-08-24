@@ -17,10 +17,23 @@ jobs:
           source "$HOME/.cargo/env"
           cargo build --release
 
-      - name: Copy bot executable
+      - name: Setup SSH key
         run: |
-          cp target/release/discord_bot /home/github-runner/discord_bot/discord_bot
-          chmod +x /home/github-runner/discord_bot/discord_bot
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Restart bot
-        run: sudo systemctl restart discord-bot
+      - name: Transfer executable to VM
+        run: |
+          scp -i ~/.ssh/deploy_key \
+            target/release/discord_bot \
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/tmp/discord_bot_new
+
+      - name: Deploy and restart bot
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
+          sudo mv /tmp/discord_bot_new /home/github-runner/discord_bot/discord_bot
+          sudo chmod +x /home/github-runner/discord_bot/discord_bot
+          sudo systemctl restart discord-bot
+          EOF
